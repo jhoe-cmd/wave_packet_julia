@@ -1,43 +1,56 @@
+using FFTW
 using Plots
 
-# parâmetros físicos
-x = range(-10, 10, length=400)
-k = 2.0
-sigma = 1.0
-v = 1.0
+# constantes
+ħ = 1.0
+m = 1.0
 
-# função do pacote de onda
-function wave_packet(x,t)
-    exp.(-(x .- v*t).^2 ./ (2*sigma^2)) .* cos.(k*(x .- v*t))
-end
+# grade espacial
+Nx = 512
+L = 100
+dx = L/Nx
+x = (-Nx/2:Nx/2-1) .* dx
 
-anim = @animate for t in range(0,10,length=120)
+# grade de momento
+dk = 2π/L
+k = (-Nx/2:Nx/2-1) .* dk
+
+# tempo
+dt = 0.05
+steps = 200
+
+# potencial (livre)
+V = zeros(Nx)
+
+# pacote gaussiano inicial
+x0 = -20
+k0 = 2
+sigma = 2
+
+ψ = exp.(-(x .- x0).^2 ./ (2*sigma^2)) .* exp.(im*k0*x)
+
+ψ = ψ ./ sqrt(sum(abs2.(ψ))*dx)
+
+anim = @animate for n in 1:steps
     
-    y = wave_packet(x,t)
+    # passo cinético (Fourier)
+    ψk = fftshift(fft(ψ))
+    ψk .= ψk .* exp.(-im*(ħ*k.^2/(2m))*dt)
+    ψ = ifft(ifftshift(ψk))
+    
+    # densidade de probabilidade
+    prob = abs2.(ψ)
 
     plot(
         x,
-        y,
-        ylim=(-1,1),
+        prob,
+        ylim=(0,0.5),
         xlabel="x",
-        ylabel="ψ(x,t)",
-        title="Wave Packet Simulation",
+        ylabel="|ψ|²",
+        title="Quantum Wave Packet",
         legend=false
     )
+
 end
 
 gif(anim,"wave_packet.gif",fps=30)
-
-# salvar imagem final
-y = wave_packet(x,10)
-
-plot(
-    x,
-    y,
-    ylim=(-1,1),
-    xlabel="x",
-    ylabel="ψ(x,t)",
-    title="Final State"
-)
-
-savefig("wave_packet.png")
