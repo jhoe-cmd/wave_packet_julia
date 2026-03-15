@@ -11,3 +11,4 @@ Simulação numérica da equação de Schrödinger 1D usando método Split-Step 
 - propagação de pacote de onda
 - barreira de potencial
 - efeito túnel quântico
+update test
