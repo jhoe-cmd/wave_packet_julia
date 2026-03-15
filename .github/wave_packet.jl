@@ -1,53 +1,55 @@
 using FFTW
 using Plots
 
-# constantes
 ħ = 1.0
 m = 1.0
 
-# grade espacial
 Nx = 512
 L = 100
 dx = L/Nx
 x = (-Nx/2:Nx/2-1) .* dx
 
-# grade de momento
 dk = 2π/L
 k = (-Nx/2:Nx/2-1) .* dk
 
-# tempo
 dt = 0.05
-steps = 200
+steps = 220
 
-# potencial (livre)
+# barreira de potencial
 V = zeros(Nx)
+for i in eachindex(x)
+    if abs(x[i]) < 2
+        V[i] = 2
+    end
+end
 
 # pacote gaussiano inicial
-x0 = -20
+x0 = -25
 k0 = 2
 sigma = 2
 
 ψ = exp.(-(x .- x0).^2 ./ (2*sigma^2)) .* exp.(im*k0*x)
-
 ψ = ψ ./ sqrt(sum(abs2.(ψ))*dx)
 
 anim = @animate for n in 1:steps
-    
-    # passo cinético (Fourier)
+
+    ψ .= ψ .* exp.(-im*V*dt/(2ħ))
+
     ψk = fftshift(fft(ψ))
     ψk .= ψk .* exp.(-im*(ħ*k.^2/(2m))*dt)
     ψ = ifft(ifftshift(ψk))
-    
-    # densidade de probabilidade
+
+    ψ .= ψ .* exp.(-im*V*dt/(2ħ))
+
     prob = abs2.(ψ)
 
     plot(
         x,
         prob,
-        ylim=(0,0.5),
+        ylim=(0,0.6),
         xlabel="x",
         ylabel="|ψ|²",
-        title="Quantum Wave Packet",
+        title="Quantum Wave Packet Tunneling",
         legend=false
     )
 

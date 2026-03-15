@@ -1,11 +1,10 @@
-name: Run Julia Simulation
+name: Julia Simulation
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-
   run:
 
     runs-on: ubuntu-latest
@@ -20,9 +19,7 @@ jobs:
         version: '1.10'
 
     - name: Install packages
-      run: |
-        julia -e 'using Pkg; Pkg.add(["Plots","FFMPEG"])'
+      run: julia -e 'using Pkg; Pkg.instantiate(); Pkg.add(["Plots","FFTW","FFMPEG"])'
 
     - name: Run simulation
-      run: |
-        julia wave_packet.jl
+      run: julia wave_packet.jl
